@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
+import os
+from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 #DB기본 코드----------------------------------------------------
-import os
-from flask_sqlalchemy import SQLAlchemy
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -28,7 +29,7 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    name = '최지웅'
+    name = '전민성'
     motto = "행복해서 웃는게 아니라 웃어서 행복합니다."
 
     context = {
@@ -42,20 +43,11 @@ def music():
     song_list = Song.query.all()
     return render_template('music.html', data = song_list)
 
-@app.route("/music/<username>")
-def render_music_filter(username):
-    filter_list = Song.query.filter_by(username=username).all()
-    return render_template('music.html', data = filter_list)
+# @app.route("/music/<username>")
+# def render_music_filter(username):
+#     filter_list = Song.query.filter_by(username=username).all()
+#     return render_template('music.html', data = filter_list)
 
-@app.route("/iloveyou/<name>/")
-def iloveyou(name):
-    motto = f"{name}야 난 너뿐이야!"
-
-    context = {
-        'name': name,
-        'motto': motto,
-    }
-    return render_template('motto.html', data=context)
 
 @app.route("/music/create/")
 def music_create():
@@ -63,11 +55,28 @@ def music_create():
     title_receive = request.args.get("title")
     artist_receive = request.args.get("artist")
     image_receive = request.args.get("image_url")
-
+    print(title_receive)
     song = Song(username = username_receive, title = title_receive, artist = artist_receive, image_url = image_receive)
+    print(song)
     db.session.add(song)
     db.session.commit()
-    return redirect(url_for('render_music_filter', username=username_receive))
+    return redirect(url_for('music'))
+
+@app.route("/music/change/")
+def music_change():
+    username_receive = request.args.get("username")
+    title_receive = request.args.get("title")
+    artist_receive = request.args.get("artist")
+    image_receive = request.args.get("image_url")
+    id_receive = request.args.get("id")
+    
+    song_data = Song.query.filter_by(id=id_receive).first()
+    song_data.title = title_receive
+    song_data.artist = artist_receive
+    song_data.username = username_receive
+    song_data.image_url = image_receive
+    db.session.commit()
+    return redirect(url_for('music'))
 
 if __name__ == "__main__":
     app.run(debug=True)
